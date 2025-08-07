@@ -14,6 +14,7 @@
             --card-bg: #ffffff;
             --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
             --border-color: #e2e8f0;
+            --focus-color: #9f7aea;
         }
         [data-theme="dark"] {
             --bg-color: #1a202c;
@@ -21,6 +22,7 @@
             --card-bg: #2d3748;
             --card-shadow: 0 4px 12px rgba(0,0,0,0.3);
             --border-color: #4a5568;
+            --focus-color: #667eea;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -29,17 +31,70 @@
             margin: 0;
             min-height: 100vh;
             line-height: 1.6;
+            transition: background-color 0.3s ease;
         }
-        .container {
-            max-width: 1100px;
-            margin: 2rem auto;
+        .app-wrapper {
+            display: flex;
+            background-color: var(--bg-color);
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--card-bg);
             padding: 2rem;
-            background: var(--card-bg);
-            box-shadow: var(--card-shadow);
-            border-radius: 20px;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .sidebar h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .nav-menu li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .nav-menu li:hover {
+            background-color: var(--secondary);
+        }
+        .nav-menu li.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        .nav-menu li.active svg {
+            stroke: #fff;
+        }
+        .nav-menu svg {
+            stroke: var(--text-color);
+            transition: stroke 0.2s ease;
+        }
+        .main-content {
+            flex: 1;
+            padding: 2rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
         }
         header {
             display: flex;
@@ -49,11 +104,10 @@
             padding-bottom: 1.5rem;
             border-bottom: 1px solid var(--border-color);
         }
-        h1 {
+        header h2 {
             font-size: 2.5rem;
             margin: 0;
             font-weight: 700;
-            color: var(--primary);
         }
         button {
             background: var(--primary);
@@ -74,10 +128,11 @@
         }
         .form-section, .preview-section {
             padding: 1.5rem;
-            background: var(--secondary);
+            background: var(--card-bg);
             border-radius: 15px;
+            box-shadow: var(--card-shadow);
         }
-        .form-section h2, .preview-section h2 {
+        .form-section h3, .preview-section h3 {
             font-size: 1.5rem;
             margin-top: 0;
             margin-bottom: 1.5rem;
@@ -103,7 +158,8 @@
         }
         input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: var(--focus-color);
+            box-shadow: 0 0 0 2px rgba(90, 103, 216, 0.2);
         }
         .line-items-table {
             width: 100%;
@@ -131,12 +187,19 @@
         .line-items-table button {
             background: none;
             border: none;
-            color: #ef4444;
+            color: var(--text-color);
             padding: 0;
             font-size: 1.2rem;
             cursor: pointer;
             width: auto;
             margin: 0;
+            transition: color 0.2s ease;
+        }
+        .line-items-table button:hover {
+            color: #ef4444;
+        }
+        .line-items-table .amount {
+            font-weight: 500;
         }
         #add-line-item {
             margin-top: 1rem;
@@ -144,6 +207,10 @@
             color: var(--primary);
             border: 1px dashed var(--primary);
             font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
         #add-line-item:hover {
             background: rgba(90, 103, 216, 0.1);
@@ -202,70 +269,129 @@
             border-top: 2px solid #e2e8f0;
         }
         @media (max-width: 900px) {
-            .container {
+            .app-wrapper {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                flex-direction: row;
+                gap: 1rem;
+                padding: 1rem;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .sidebar h1 {
+                font-size: 1.5rem;
+            }
+            .nav-menu {
+                flex-direction: row;
+            }
+            .nav-menu li {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+            .nav-menu li span {
+                display: none;
+            }
+            .main-content {
                 grid-template-columns: 1fr;
                 padding: 1rem;
-                margin: 1rem;
+            }
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-bottom: 1rem;
+            }
+            header h2 {
+                font-size: 2rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
+    <div class="app-wrapper">
+        <aside class="sidebar">
             <h1>InvoiceFlow</h1>
-            <button id="dark-mode-toggle">🌙 Dark Mode</button>
-        </header>
+            <ul class="nav-menu">
+                <li>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span>Dashboard</span>
+                </li>
+                <li class="active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Invoices</span>
+                </li>
+                <li>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Clients</span>
+                </li>
+            </ul>
+        </aside>
 
-        <section class="form-section">
-            <h2>Create New Invoice</h2>
-            <div class="form-group">
-                <label for="company-name">Your Company Name</label>
-                <input type="text" id="company-name" placeholder="InvoiceFlow Inc.">
-            </div>
-            <div class="form-group">
-                <label for="client-name">Client Name</label>
-                <input type="text" id="client-name" placeholder="John Doe">
-            </div>
-            <div class="form-group">
-                <label for="invoice-date">Invoice Date</label>
-                <input type="date" id="invoice-date">
-            </div>
-            <div class="form-group">
-                <label for="invoice-number">Invoice Number</label>
-                <input type="text" id="invoice-number" placeholder="INV-001">
-            </div>
-            
-            <h3>Invoice Items</h3>
-            <table class="line-items-table">
-                <thead>
-                    <tr>
-                        <th style="width: 45%;">Description</th>
-                        <th style="width: 15%;">Qty</th>
-                        <th style="width: 15%;">Rate</th>
-                        <th style="width: 15%;">Amount</th>
-                        <th style="width: 10%;"></th>
-                    </tr>
-                </thead>
-                <tbody id="items-container">
-                    </tbody>
-            </table>
-            <button id="add-line-item" type="button">+ Add Line Item</button>
-            <div class="total-amount">
-                Total: <span id="total-amount-display">$0.00</span>
-            </div>
-
-            <button id="download-pdf" style="margin-top: 2rem; width: 100%;">Download Invoice</button>
-        </section>
-
-        <section class="preview-section">
-            <h2>Live Preview</h2>
-            <div id="invoice-preview" class="preview-invoice">
+        <main class="main-content">
+            <header>
+                <h2>New Invoice</h2>
+                <button id="dark-mode-toggle">🌙 Dark Mode</button>
+            </header>
+            <section class="form-section">
+                <h3>Invoice Details</h3>
+                <div class="form-group">
+                    <label for="company-name">Your Company Name</label>
+                    <input type="text" id="company-name" placeholder="InvoiceFlow Inc.">
                 </div>
-        </section>
+                <div class="form-group">
+                    <label for="client-name">Client Name</label>
+                    <input type="text" id="client-name" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="invoice-date">Invoice Date</label>
+                    <input type="date" id="invoice-date">
+                </div>
+                <div class="form-group">
+                    <label for="invoice-number">Invoice Number</label>
+                    <input type="text" id="invoice-number" placeholder="INV-001">
+                </div>
+                
+                <h3>Invoice Items</h3>
+                <table class="line-items-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Description</th>
+                            <th style="width: 15%;">Qty</th>
+                            <th style="width: 15%;">Rate</th>
+                            <th style="width: 15%;">Amount</th>
+                            <th style="width: 10%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="items-container">
+                        </tbody>
+                </table>
+                <button id="add-line-item" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add Item
+                </button>
+                <div class="total-amount">
+                    Total: <span id="total-amount-display">$0.00</span>
+                </div>
+
+                <button id="download-pdf" style="margin-top: 2rem; width: 100%;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Download Invoice
+                </button>
+            </section>
+
+            <section class="preview-section">
+                <h3>Live Preview</h3>
+                <div id="invoice-preview" class="preview-invoice">
+                    </div>
+            </section>
+        </main>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         // Set today's date on page load
         const today = new Date().toISOString().split('T')[0];
@@ -299,8 +425,10 @@
                     <td><input type="text" placeholder="Description" value="${item.description}" data-idx="${index}" class="description-input"></td>
                     <td><input type="number" min="1" value="${item.quantity}" data-idx="${index}" class="quantity-input"></td>
                     <td><input type="number" min="0" step="0.01" value="${item.rate}" data-idx="${index}" class="rate-input"></td>
-                    <td>$${amount.toFixed(2)}</td>
-                    <td><button type="button" class="remove-item" data-idx="${index}">🗑️</button></td>
+                    <td class="amount">$${amount.toFixed(2)}</td>
+                    <td><button type="button" class="remove-item" data-idx="${index}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button></td>
                 `;
                 container.appendChild(row);
             });
@@ -335,7 +463,7 @@
                 <div class="preview-header">
                     <div>
                         <h3>${companyName}</h3>
-                        <p>Invoice for: ${clientName}</p>
+                        <p>Invoice for: <strong>${clientName}</strong></p>
                     </div>
                     <div>
                         <p>Invoice #: <strong>${invoiceNumber}</strong></p>
@@ -392,29 +520,41 @@
             renderItems();
         });
         container.addEventListener('click', (e) => {
-            if (e.target.classList.contains('remove-item')) {
-                removeItem(parseInt(e.target.dataset.idx));
+            if (e.target.closest('.remove-item')) {
+                removeItem(parseInt(e.target.closest('.remove-item').dataset.idx));
             }
         });
         [companyNameInput, clientNameInput, invoiceDateInput, invoiceNumberInput].forEach(input => {
             input.addEventListener('input', renderPreview);
         });
 
-        // PDF Export function
+        // PDF Export function using html2canvas and jsPDF
         document.getElementById('download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                unit: 'pt',
-                format: 'letter'
-            });
+            const previewElement = document.getElementById('invoice-preview');
 
-            // Using HTML to render a cleaner PDF
-            doc.html(document.getElementById('invoice-preview'), {
-                callback: (pdf) => {
-                    pdf.save('invoice.pdf');
-                },
-                x: 30,
-                y: 30
+            html2canvas(previewElement, { 
+                scale: 2 // Higher scale for better resolution
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210; 
+                const pageHeight = 295;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                pdf.save('invoice.pdf');
             });
         });
 
