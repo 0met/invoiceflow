@@ -1,714 +1,464 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvoiceFlow</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #f8f9fa;
-            --text-color: #212529;
-            --primary: #5a67d8;
-            --secondary: #e2e8f0;
-            --card-bg: #ffffff;
-            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            --border-color: #e2e8f0;
-            --focus-color: #9f7aea;
-        }
-        [data-theme="dark"] {
-            --bg-color: #1a202c;
-            --text-color: #e2e8f0;
-            --card-bg: #2d3748;
-            --card-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            --border-color: #4a5568;
-            --focus-color: #667eea;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            min-height: 100vh;
-            line-height: 1.6;
-            transition: background-color 0.3s ease;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: var(--card-bg);
-            box-shadow: var(--card-shadow);
-            border-radius: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            grid-column: 1 / -1;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        h1 {
-            font-size: 2.5rem;
-            margin: 0;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        button {
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-        button.transparent-btn {
-            background: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        button.transparent-btn:hover {
-            background: rgba(90, 103, 216, 0.1);
-        }
-        button:hover {
-            background: #434190;
-        }
-        button:active {
-            transform: scale(0.98);
-        }
-        .form-section, .preview-section {
-            padding: 1.5rem;
-            background: var(--secondary);
-            border-radius: 15px;
-            box-shadow: var(--card-shadow);
-        }
-        .form-section h2, .preview-section h2 {
-            font-size: 1.5rem;
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-            position: relative;
-        }
-        label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        input[type="text"], input[type="number"], input[type="date"] {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            background: var(--card-bg);
-            color: var(--text-color);
-            transition: border-color 0.2s;
-        }
-        input:focus {
-            outline: none;
-            border-color: var(--focus-color);
-            box-shadow: 0 0 0 2px rgba(90, 103, 216, 0.2);
-        }
-        .line-items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1.5rem;
-        }
-        .line-items-table th, .line-items-table td {
-            padding: 0.75rem 0;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .line-items-table th {
-            font-weight: 600;
-            color: #6b7280;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-        }
-        .line-items-table input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            border-radius: 6px;
-        }
-        .line-items-table button {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            padding: 0;
-            font-size: 1.2rem;
-            cursor: pointer;
-            width: auto;
-            margin: 0;
-            transition: color 0.2s ease;
-        }
-        .line-items-table button:hover {
-            color: #ef4444;
-        }
-        .line-items-table .amount {
-            font-weight: 500;
-        }
-        #add-line-item {
-            margin-top: 1rem;
-            background: transparent;
-            color: var(--primary);
-            border: 1px dashed var(--primary);
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        #add-line-item:hover {
-            background: rgba(90, 103, 216, 0.1);
-        }
-        .total-amount {
-            font-size: 1.8rem;
-            font-weight: 700;
-            text-align: right;
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 2px solid var(--border-color);
-        }
-        .total-amount span {
-            color: var(--primary);
-        }
-        .preview-invoice {
-            padding: 2rem;
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            min-height: 500px;
-        }
-        .preview-invoice h3 {
-            font-size: 1.8rem;
-            margin-top: 0;
-            color: var(--primary);
-        }
-        .preview-invoice p {
-            margin: 0;
-        }
-        .preview-invoice .preview-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-        }
-        .preview-invoice table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1rem;
-        }
-        .preview-invoice th, .preview-invoice td {
-            text-align: left;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .preview-invoice th {
-            font-weight: 600;
-            color: #6b7280;
-        }
-        .preview-invoice .total-preview {
-            text-align: right;
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 2px solid #e2e8f0;
-        }
-        .saved-data-section {
-            padding-top: 1rem;
-            margin-top: 1rem;
-            border-top: 1px solid var(--border-color);
-        }
-        .saved-data-section h3 {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-        }
-        .saved-data-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .saved-data-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: background 0.2s ease;
-        }
-        .saved-data-list li:hover {
-            background: var(--secondary);
-        }
-        .saved-data-list .delete-btn {
-            background: none;
-            border: none;
-            color: #ef4444;
-            padding: 0;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: color 0.2s ease;
-            width: auto;
-        }
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-            justify-content: flex-end;
-        }
-        .button-group button {
-            width: auto;
-        }
-        @media (max-width: 900px) {
-            .container {
-                grid-template-columns: 1fr;
-                padding: 1rem;
-                margin: 1rem;
-            }
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                padding-bottom: 1rem;
-            }
-            header h1 {
-                font-size: 2rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>InvoiceFlow</h1>
-            <button id="dark-mode-toggle">🌙 Dark Mode</button>
-        </header>
+import React, { useState, useEffect } from 'react';
 
-        <section class="form-section">
-            <h2>Create New Invoice</h2>
-            
-            <div class="form-group">
-                <label for="company-name">Your Company Name</label>
-                <input type="text" id="company-name" placeholder="InvoiceFlow Inc.">
-            </div>
+// Main App component for the entire application
+const App = () => {
+  // State for all the application data and UI settings
+  const [view, setView] = useState('dashboard'); // 'dashboard' or 'create'
+  const [invoices, setInvoices] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [items, setItems] = useState([]);
+  const [currentInvoice, setCurrentInvoice] = useState(null); // The invoice being edited
+  const [darkMode, setDarkMode] = useState(false);
+  
+  // State for the current invoice form inputs
+  const [companyName, setCompanyName] = useState('');
+  const [clientName, setClientName] = useState('');
+  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [status, setStatus] = useState('Pending');
+  const [lineItems, setLineItems] = useState([{ description: '', quantity: 1, rate: 0 }]);
 
-            <div class="form-group">
-                <label for="client-name">Client Name</label>
-                <input type="text" id="client-name" list="clients-list" placeholder="John Doe">
-                <datalist id="clients-list"></datalist>
-                <div class="button-group">
-                    <button id="save-client-btn" class="transparent-btn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        Save Client
-                    </button>
-                </div>
-            </div>
+  // Load data from localStorage on initial component mount
+  useEffect(() => {
+    const savedData = JSON.parse(localStorage.getItem('invoiceFlowData')) || {
+      invoices: [],
+      clients: [],
+      items: [],
+    };
+    setInvoices(savedData.invoices);
+    setClients(savedData.clients);
+    setItems(savedData.items);
+  }, []);
 
-            <div class="form-group">
-                <label for="invoice-date">Invoice Date</label>
-                <input type="date" id="invoice-date">
-            </div>
+  // Save data to localStorage whenever invoices, clients, or items change
+  useEffect(() => {
+    localStorage.setItem('invoiceFlowData', JSON.stringify({ invoices, clients, items }));
+  }, [invoices, clients, items]);
 
-            <div class="form-group">
-                <label for="invoice-number">Invoice Number</label>
-                <input type="text" id="invoice-number" placeholder="INV-001">
-            </div>
-            
-            <h3>Invoice Items</h3>
-            <table class="line-items-table">
-                <thead>
-                    <tr>
-                        <th style="width: 45%;">Description</th>
-                        <th style="width: 15%;">Qty</th>
-                        <th style="width: 15%;">Rate</th>
-                        <th style="width: 15%;">Amount</th>
-                        <th style="width: 10%;"></th>
-                    </tr>
-                </thead>
-                <tbody id="items-container">
-                    <!-- Invoice items will be dynamically added here -->
-                </tbody>
-            </table>
-            <button id="add-line-item" type="button">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Add Item
-            </button>
-            <div class="button-group">
-                <button id="save-item-btn" class="transparent-btn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                    Save Item
-                </button>
-            </div>
-            <div class="total-amount">
-                Total: <span id="total-amount-display">$0.00</span>
-            </div>
-            <button id="download-pdf" style="margin-top: 2rem; width: 100%;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Download Invoice
-            </button>
+  // Function to save a new or updated invoice
+  const saveInvoice = () => {
+    const newInvoice = {
+      id: currentInvoice ? currentInvoice.id : Date.now(),
+      companyName,
+      clientName,
+      invoiceDate,
+      invoiceNumber,
+      status,
+      lineItems,
+    };
 
-            <div class="saved-data-section">
-                <h3>Manage Saved Clients</h3>
-                <ul id="saved-clients-list" class="saved-data-list"></ul>
-            </div>
-            
-            <div class="saved-data-section">
-                <h3>Manage Saved Items</h3>
-                <ul id="saved-items-list" class="saved-data-list"></ul>
-            </div>
-        </section>
+    if (currentInvoice) {
+      // Update existing invoice
+      setInvoices(invoices.map(inv => inv.id === newInvoice.id ? newInvoice : inv));
+    } else {
+      // Add new invoice
+      setInvoices([...invoices, newInvoice]);
+    }
 
-        <section class="preview-section">
-            <h2>Live Preview</h2>
-            <div id="invoice-preview" class="preview-invoice">
-                <!-- Live preview will be rendered here -->
-            </div>
-        </section>
-    </div>
+    // Reset form and return to dashboard
+    resetForm();
+    setView('dashboard');
+  };
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
-        // Set today's date on page load
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('invoice-date').value = today;
+  // Function to load an invoice for editing
+  const loadInvoiceForEdit = (invoice) => {
+    setCurrentInvoice(invoice);
+    setCompanyName(invoice.companyName);
+    setClientName(invoice.clientName);
+    setInvoiceDate(invoice.invoiceDate);
+    setInvoiceNumber(invoice.invoiceNumber);
+    setStatus(invoice.status);
+    setLineItems(invoice.lineItems);
+    setView('create');
+  };
 
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        const body = document.body;
-        darkModeToggle.addEventListener('click', () => {
-            body.dataset.theme = body.dataset.theme === 'dark' ? '' : 'dark';
-            darkModeToggle.textContent = body.dataset.theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-        });
+  // Function to delete an invoice
+  const deleteInvoice = (id) => {
+    setInvoices(invoices.filter(inv => inv.id !== id));
+  };
+  
+  // Function to delete a saved client
+  const deleteClient = (clientName) => {
+    setClients(clients.filter(c => c !== clientName));
+  };
 
-        // Store all data in a single object
-        const invoiceData = {
-            clients: [],
-            items: []
-        };
-        let lineItems = [{ description: '', quantity: 1, rate: 0 }];
+  // Function to delete a saved item
+  const deleteItem = (itemDescription) => {
+    setItems(items.filter(i => i.description !== itemDescription));
+  };
 
-        const container = document.getElementById('items-container');
-        const preview = document.getElementById('invoice-preview');
-        const companyNameInput = document.getElementById('company-name');
-        const clientNameInput = document.getElementById('client-name');
-        const invoiceDateInput = document.getElementById('invoice-date');
-        const invoiceNumberInput = document.getElementById('invoice-number');
-        const totalAmountDisplay = document.getElementById('total-amount-display');
-        const clientsDatalist = document.getElementById('clients-list');
-        const savedClientsList = document.getElementById('saved-clients-list');
-        const savedItemsList = document.getElementById('saved-items-list');
+  // Function to reset the invoice form
+  const resetForm = () => {
+    setCurrentInvoice(null);
+    setCompanyName('');
+    setClientName('');
+    setInvoiceDate(new Date().toISOString().split('T')[0]);
+    setInvoiceNumber('');
+    setStatus('Pending');
+    setLineItems([{ description: '', quantity: 1, rate: 0 }]);
+  };
+  
+  // Function to save a client to the library
+  const saveClient = () => {
+    if (clientName && !clients.includes(clientName)) {
+      setClients([...clients, clientName]);
+    }
+  };
+  
+  // Function to save an item to the library
+  const saveItem = () => {
+    const lastItem = lineItems[lineItems.length - 1];
+    if (lastItem.description && !items.some(item => item.description === lastItem.description)) {
+      setItems([...items, lastItem]);
+    }
+  };
 
-        /**
-         * Loads data from localStorage into the invoiceData object.
-         */
-        function loadData() {
-            const savedData = localStorage.getItem('invoiceFlowData');
-            if (savedData) {
-                const parsedData = JSON.parse(savedData);
-                invoiceData.clients = parsedData.clients || [];
-                invoiceData.items = parsedData.items || [];
-            }
-        }
+  // Toggles dark mode
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
-        /**
-         * Saves the current invoiceData object to localStorage.
-         */
-        function saveData() {
-            localStorage.setItem('invoiceFlowData', JSON.stringify(invoiceData));
-        }
+  // --- Components for different views ---
+
+  // Dashboard View
+  const Dashboard = () => {
+    const totalInvoices = invoices.length;
+    const totalRevenue = invoices.reduce((sum, inv) => 
+      sum + inv.lineItems.reduce((lineSum, item) => lineSum + item.quantity * item.rate, 0),
+      0
+    );
+    const paidInvoices = invoices.filter(inv => inv.status === 'Paid').length;
+
+    return (
+      <div className="flex flex-col gap-8 w-full p-6">
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Invoice Dashboard</h2>
         
-        /**
-         * Renders the saved clients as options in the datalist and the management list.
-         */
-        function renderClientsList() {
-            clientsDatalist.innerHTML = invoiceData.clients.map(client => 
-                `<option value="${client}"></option>`
-            ).join('');
+        {/* Summary Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+            <p className="text-lg font-medium text-gray-500 dark:text-gray-400">Total Invoices</p>
+            <p className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-2">{totalInvoices}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+            <p className="text-lg font-medium text-gray-500 dark:text-gray-400">Total Revenue</p>
+            <p className="text-4xl font-extrabold text-green-600 dark:text-green-400 mt-2">${totalRevenue.toFixed(2)}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+            <p className="text-lg font-medium text-gray-500 dark:text-gray-400">Paid Invoices</p>
+            <p className="text-4xl font-extrabold text-blue-600 dark:text-blue-400 mt-2">{paidInvoices}</p>
+          </div>
+        </div>
 
-            savedClientsList.innerHTML = invoiceData.clients.map(client => `
-                <li>
-                    <span>${client}</span>
-                    <button class="delete-btn" data-client="${client}">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                    </button>
-                </li>
-            `).join('');
-        }
-        
-        /**
-         * Renders the saved items as options for the item datalists and the management list.
-         */
-        function renderItemsList() {
-            const itemDatalists = document.querySelectorAll('.items-list');
-            itemDatalists.forEach(list => {
-                list.innerHTML = invoiceData.items.map(item => 
-                    `<option value="${item.description}"></option>`
-                ).join('');
-            });
-
-            savedItemsList.innerHTML = invoiceData.items.map(item => `
-                <li>
-                    <span>${item.description} ($${item.rate.toFixed(2)})</span>
-                    <button class="delete-btn" data-item="${item.description}">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                    </button>
-                </li>
-            `).join('');
-        }
-
-        /**
-         * Renders the invoice line items table.
-         */
-        function renderLineItems() {
-            container.innerHTML = '';
-            lineItems.forEach((item, index) => {
-                const row = document.createElement('tr');
-                const amount = item.quantity * item.rate;
-                row.innerHTML = `
-                    <td><input type="text" placeholder="Description" value="${item.description}" data-idx="${index}" class="description-input" list="items-list-${index}">
-                        <datalist id="items-list-${index}" class="items-list"></datalist>
+        {/* Invoices Table */}
+        <div className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-lg">
+          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">All Invoices</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Invoice #</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Client</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
+                {invoices.map(invoice => (
+                  <tr key={invoice.id} className="hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{invoice.invoiceNumber}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{invoice.clientName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{invoice.invoiceDate}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${invoice.status === 'Paid' ? 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-100' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100'}`}>
+                        {invoice.status}
+                      </span>
                     </td>
-                    <td><input type="number" min="1" value="${item.quantity}" data-idx="${index}" class="quantity-input"></td>
-                    <td><input type="number" min="0" step="0.01" value="${item.rate}" data-idx="${index}" class="rate-input"></td>
-                    <td class="amount">$${amount.toFixed(2)}</td>
-                    <td><button type="button" class="remove-item" data-idx="${index}">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                    </button></td>
-                `;
-                container.appendChild(row);
-            });
-            updateTotal();
-            renderPreview();
-            renderItemsList(); // Ensure the datalists are populated
-        }
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      ${invoice.lineItems.reduce((sum, item) => sum + item.quantity * item.rate, 0).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button onClick={() => loadInvoiceForEdit(invoice)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 transition-colors">Edit</button>
+                      <button onClick={() => deleteInvoice(invoice.id)} className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-200 ml-4 transition-colors">Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  // Form View for creating/editing invoices
+  const InvoiceForm = () => {
+    // PDF Export function using html2canvas and jsPDF
+    const downloadPDF = () => {
+      const { jsPDF } = window.jspdf;
+      const previewElement = document.getElementById('invoice-preview');
 
-        /**
-         * Adds a new line item row to the invoice.
-         */
-        function addItem() {
-            lineItems.push({ description: '', quantity: 1, rate: 0 });
-            renderLineItems();
-        }
-
-        /**
-         * Removes a line item from the invoice.
-         * @param {number} index - The index of the item to remove.
-         */
-        function removeItem(index) {
-            if (lineItems.length > 1) {
-                lineItems.splice(index, 1);
-                renderLineItems();
-            }
-        }
-
-        /**
-         * Calculates and updates the total amount.
-         */
-        function updateTotal() {
-            const total = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-            totalAmountDisplay.textContent = `$${total.toFixed(2)}`;
-        }
-
-        /**
-         * Renders the live invoice preview.
-         */
-        function renderPreview() {
-            const companyName = companyNameInput.value || 'Your Company';
-            const clientName = clientNameInput.value || 'Client Name';
-            const invoiceDate = invoiceDateInput.value || today;
-            const invoiceNumber = invoiceNumberInput.value || 'INV-001';
-
-            let previewHTML = `
-                <div class="preview-header">
-                    <div>
-                        <h3>${companyName}</h3>
-                        <p>Invoice for: <strong>${clientName}</strong></p>
-                    </div>
-                    <div>
-                        <p>Invoice #: <strong>${invoiceNumber}</strong></p>
-                        <p>Date: ${invoiceDate}</p>
-                    </div>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th>Qty</th>
-                            <th>Rate</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            let total = 0;
-            lineItems.forEach(item => {
-                const amount = item.quantity * item.rate;
-                previewHTML += `
-                    <tr>
-                        <td>${item.description}</td>
-                        <td>${item.quantity}</td>
-                        <td>$${item.rate.toFixed(2)}</td>
-                        <td>$${amount.toFixed(2)}</td>
-                    </tr>
-                `;
-                total += amount;
-            });
-            previewHTML += `
-                    </tbody>
-                </table>
-                <div class="total-preview">
-                    Total: $${total.toFixed(2)}
-                </div>
-            `;
-            preview.innerHTML = previewHTML;
+      html2canvas(previewElement, { 
+        scale: 2
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210; 
+        const pageHeight = 295;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
         }
         
-        /**
-         * Finds a saved item from the library by its description.
-         * @param {string} description - The description to search for.
-         * @returns {object|undefined} The saved item object or undefined.
-         */
-        function getSavedItem(description) {
-            return invoiceData.items.find(item => item.description === description);
-        }
+        pdf.save(`invoice_${invoiceNumber || 'new'}.pdf`);
+      });
+    };
+    
+    // Calculates total amount for the current invoice
+    const totalAmount = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
 
-        /**
-         * Deletes a client from the saved list.
-         * @param {string} clientName - The name of the client to delete.
-         */
-        function deleteClient(clientName) {
-            invoiceData.clients = invoiceData.clients.filter(c => c !== clientName);
-            saveData();
-            renderClientsList();
-        }
+    // Renders the live invoice preview
+    const renderPreview = () => {
+        let previewHTML = `
+            <div class="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h3 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">${companyName || 'Your Company'}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Invoice for: <strong class="text-gray-800 dark:text-gray-200">${clientName || 'Client Name'}</strong></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-gray-500 dark:text-gray-400">Invoice #: <strong class="text-gray-800 dark:text-gray-200">${invoiceNumber || 'INV-001'}</strong></p>
+                        <p class="text-gray-500 dark:text-gray-400">Date: ${invoiceDate}</p>
+                        <p class="text-gray-500 dark:text-gray-400 mt-2">Status: <strong class="font-bold ${status === 'Paid' ? 'text-green-600' : 'text-yellow-600'}">${status}</strong></p>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200 dark:border-gray-600 pt-6">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-gray-500 dark:text-gray-400 uppercase text-sm">
+                                <th class="w-1/2 font-semibold pb-2">Description</th>
+                                <th class="w-1/6 font-semibold pb-2">Qty</th>
+                                <th class="w-1/6 font-semibold pb-2">Rate</th>
+                                <th class="w-1/6 text-right font-semibold pb-2">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${lineItems.map(item => `
+                                <tr class="border-b border-gray-200 dark:border-gray-600 last:border-b-0">
+                                    <td class="py-2 text-gray-800 dark:text-gray-200">${item.description}</td>
+                                    <td class="py-2 text-gray-800 dark:text-gray-200">${item.quantity}</td>
+                                    <td class="py-2 text-gray-800 dark:text-gray-200">$${item.rate.toFixed(2)}</td>
+                                    <td class="py-2 text-right text-gray-800 dark:text-gray-200">$${(item.quantity * item.rate).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-right mt-6">
+                    <p class="text-lg font-bold text-gray-800 dark:text-gray-200">Total: <span class="text-indigo-600 dark:text-indigo-400">$${totalAmount.toFixed(2)}</span></p>
+                </div>
+            </div>
+        `;
+        document.getElementById('invoice-preview').innerHTML = previewHTML;
+    };
+    
+    // Renders the preview every time state changes
+    useEffect(renderPreview, [companyName, clientName, invoiceDate, invoiceNumber, status, lineItems]);
 
-        /**
-         * Deletes an item from the saved list.
-         * @param {string} itemDescription - The description of the item to delete.
-         */
-        function deleteItem(itemDescription) {
-            invoiceData.items = invoiceData.items.filter(i => i.description !== itemDescription);
-            saveData();
-            renderItemsList();
-        }
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+        {/* Form Section */}
+        <section className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Create New Invoice</h2>
+          
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label htmlFor="company-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Your Company Name</label>
+              <input type="text" id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="InvoiceFlow Inc." className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
+            </div>
 
-        // --- Event Listeners ---
-        document.getElementById('add-line-item').addEventListener('click', addItem);
+            <div>
+              <label htmlFor="client-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Client Name</label>
+              <input type="text" id="client-name" list="clients-list" value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="John Doe" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
+              <datalist id="clients-list">
+                {clients.map(client => <option key={client} value={client} />)}
+              </datalist>
+              <button onClick={saveClient} className="mt-2 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 font-medium">Save Client</button>
+            </div>
 
-        document.getElementById('save-client-btn').addEventListener('click', () => {
-            const clientName = clientNameInput.value.trim();
-            if (clientName && !invoiceData.clients.includes(clientName)) {
-                invoiceData.clients.push(clientName);
-                saveData();
-                renderClientsList();
-            }
-        });
+            <div>
+              <label htmlFor="invoice-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Invoice Date</label>
+              <input type="date" id="invoice-date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
+            </div>
 
-        document.getElementById('save-item-btn').addEventListener('click', () => {
-            const lastItem = lineItems[lineItems.length - 1];
-            const description = lastItem.description.trim();
-            if (description && !getSavedItem(description)) {
-                invoiceData.items.push(lastItem);
-                saveData();
-                renderItemsList();
-            }
-        });
-        
-        container.addEventListener('input', (e) => {
-            const target = e.target;
-            const index = parseInt(target.dataset.idx);
+            <div>
+              <label htmlFor="invoice-number" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Invoice Number</label>
+              <input type="text" id="invoice-number" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="INV-001" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
+            </div>
             
-            if (target.classList.contains('description-input')) {
-                lineItems[index].description = target.value;
-                const savedItem = getSavedItem(target.value);
-                if (savedItem) {
-                    lineItems[index].quantity = savedItem.quantity;
-                    lineItems[index].rate = savedItem.rate;
-                }
-            } else if (target.classList.contains('quantity-input')) {
-                lineItems[index].quantity = Math.max(1, parseFloat(target.value));
-            } else if (target.classList.contains('rate-input')) {
-                lineItems[index].rate = Math.max(0, parseFloat(target.value));
-            }
-            renderLineItems();
-        });
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+              <select id="status" value={status} onChange={(e) => setStatus(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid</option>
+              </select>
+            </div>
+          </div>
 
-        container.addEventListener('click', (e) => {
-            if (e.target.closest('.remove-item')) {
-                removeItem(parseInt(e.target.closest('.remove-item').dataset.idx));
-            }
-        });
+          <h3 className="text-xl font-bold mt-8 mb-4 text-gray-800 dark:text-gray-100">Invoice Items</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/2">Description</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">Qty</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">Rate</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">Amount</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/12"></th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
+                {lineItems.map((item, index) => (
+                  <tr key={index}>
+                    <td className="py-2">
+                      <input 
+                        type="text" 
+                        value={item.description} 
+                        onChange={(e) => {
+                          const newItems = [...lineItems];
+                          newItems[index].description = e.target.value;
+                          const savedItem = items.find(i => i.description === e.target.value);
+                          if (savedItem) {
+                            newItems[index].quantity = savedItem.quantity;
+                            newItems[index].rate = savedItem.rate;
+                          }
+                          setLineItems(newItems);
+                        }} 
+                        placeholder="Description" 
+                        list={`items-list-${index}`}
+                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
+                      />
+                      <datalist id={`items-list-${index}`}>
+                        {items.map(savedItem => <option key={savedItem.description} value={savedItem.description} />)}
+                      </datalist>
+                    </td>
+                    <td className="py-2"><input type="number" value={item.quantity} onChange={(e) => {
+                      const newItems = [...lineItems];
+                      newItems[index].quantity = parseFloat(e.target.value) || 0;
+                      setLineItems(newItems);
+                    }} className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" /></td>
+                    <td className="py-2"><input type="number" value={item.rate} onChange={(e) => {
+                      const newItems = [...lineItems];
+                      newItems[index].rate = parseFloat(e.target.value) || 0;
+                      setLineItems(newItems);
+                    }} className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" /></td>
+                    <td className="py-2 text-right text-gray-800 dark:text-gray-100">${(item.quantity * item.rate).toFixed(2)}</td>
+                    <td className="py-2">
+                      <button onClick={() => setLineItems(lineItems.filter((_, i) => i !== index))} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200">
+                        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="flex justify-between items-center mt-4">
+            <button onClick={() => setLineItems([...lineItems, { description: '', quantity: 1, rate: 0 }])} className="px-4 py-2 border border-dashed border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 rounded-md hover:bg-indigo-50 dark:hover:bg-gray-700">Add Item</button>
+            <button onClick={saveItem} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 font-medium">Save Item</button>
+          </div>
 
-        savedClientsList.addEventListener('click', (e) => {
-            if (e.target.closest('.delete-btn')) {
-                const clientName = e.target.closest('.delete-btn').dataset.client;
-                deleteClient(clientName);
-            }
-        });
+          <div className="text-right text-2xl font-bold mt-8 border-t pt-4 border-gray-200 dark:border-gray-600">
+            Total: <span className="text-indigo-600 dark:text-indigo-400">${totalAmount.toFixed(2)}</span>
+          </div>
 
-        savedItemsList.addEventListener('click', (e) => {
-            if (e.target.closest('.delete-btn')) {
-                const itemDescription = e.target.closest('.delete-btn').dataset.item;
-                deleteItem(itemDescription);
-            }
-        });
+          <button onClick={saveInvoice} className="w-full mt-6 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-colors">
+            {currentInvoice ? 'Update Invoice' : 'Save Invoice'}
+          </button>
+          <button onClick={downloadPDF} className="w-full mt-4 py-3 bg-gray-500 text-white rounded-lg shadow-md hover:bg-gray-600 transition-colors">
+            Download PDF
+          </button>
+          {currentInvoice && (
+            <button onClick={resetForm} className="w-full mt-4 py-3 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-colors">
+              Cancel Edit
+            </button>
+          )}
 
-        [companyNameInput, clientNameInput, invoiceDateInput, invoiceNumberInput].forEach(input => {
-            input.addEventListener('input', renderPreview);
-        });
+          <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Manage Saved Clients</h3>
+            <ul className="space-y-2">
+              {clients.map(client => (
+                <li key={client} className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                  <span className="text-gray-800 dark:text-gray-200">{client}</span>
+                  <button onClick={() => deleteClient(client)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-600">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Manage Saved Items</h3>
+            <ul className="space-y-2">
+              {items.map(item => (
+                <li key={item.description} className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                  <span className="text-gray-800 dark:text-gray-200">{item.description} (${item.rate.toFixed(2)})</span>
+                  <button onClick={() => deleteItem(item.description)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-600">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        // PDF Export function using html2canvas and jsPDF
-        document.getElementById('download-pdf').addEventListener('click', () => {
-            const { jsPDF } = window.jspdf;
-            const previewElement = document.getElementById('invoice-preview');
+        </section>
 
-            html2canvas(previewElement, { 
-                scale: 2
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgWidth = 210; 
-                const pageHeight = 295;
-                const imgHeight = canvas.height * imgWidth / canvas.width;
-                let heightLeft = imgHeight;
-                let position = 0;
-                
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-                
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-                }
-                
-                pdf.save('invoice.pdf');
-            });
-        });
+        {/* Live Preview Section */}
+        <section className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Live Preview</h2>
+          <div id="invoice-preview" className="bg-gray-100 dark:bg-gray-900 rounded-lg p-6 shadow-inner">
+            {/* The preview is rendered here */}
+          </div>
+        </section>
+      </div>
+    );
+  };
+  
+  // Main return statement for the App component
+  return (
+    <div className={`min-h-screen bg-gray-100 dark:bg-gray-900 font-inter transition-colors duration-300 ${darkMode ? 'dark' : ''}`}>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+      
+      <header className="flex items-center justify-between p-6 bg-white dark:bg-gray-800 shadow-md">
+        <h1 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">InvoiceFlow</h1>
+        <div className="flex space-x-4">
+          <button onClick={() => setView(view === 'dashboard' ? 'create' : 'dashboard')} className="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-colors">
+            {view === 'dashboard' ? 'Create New Invoice' : 'Back to Dashboard'}
+          </button>
+          <button onClick={toggleDarkMode} className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg shadow-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
+        </div>
+      </header>
 
-        // Initial load and render
-        loadData();
-        renderClientsList();
-        renderLineItems();
-    </script>
-</body>
-</html>
+      {view === 'dashboard' ? <Dashboard /> : <InvoiceForm />}
+    </div>
+  );
+};
+
+export default App;
+
