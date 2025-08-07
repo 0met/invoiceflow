@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvoiceFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --primary: #5a67d8;
+            --secondary: #e2e8f0;
+            --card-bg: #ffffff;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --border-color: #e2e8f0;
+        }
+        [data-theme="dark"] {
+            --bg-color: #1a202c;
+            --text-color: #e2e8f0;
+            --card-bg: #2d3748;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            --border-color: #4a5568;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            border-radius: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            grid-column: 1 / -1;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        button {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        button:hover {
+            background: #434190;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .form-section, .preview-section {
+            padding: 1.5rem;
+            background: var(--secondary);
+            border-radius: 15px;
+        }
+        .form-section h2, .preview-section h2 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        input[type="text"], input[type="number"], input[type="date"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--card-bg);
+            color: var(--text-color);
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .line-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        .line-items-table th, .line-items-table td {
+            padding: 0.75rem 0;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .line-items-table th {
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .line-items-table input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: 6px;
+        }
+        .line-items-table button {
+            background: none;
+            border: none;
+            color: #ef4444;
+            padding: 0;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: auto;
+            margin: 0;
+        }
+        #add-line-item {
+            margin-top: 1rem;
+            background: transparent;
+            color: var(--primary);
+            border: 1px dashed var(--primary);
+            font-size: 0.9rem;
+        }
+        #add-line-item:hover {
+            background: rgba(90, 103, 216, 0.1);
+        }
+        .total-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: right;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--border-color);
+        }
+        .total-amount span {
+            color: var(--primary);
+        }
+        .preview-invoice {
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            min-height: 500px;
+        }
+        .preview-invoice h3 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            color: var(--primary);
+        }
+        .preview-invoice p {
+            margin: 0;
+        }
+        .preview-invoice .preview-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .preview-invoice table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        .preview-invoice th, .preview-invoice td {
+            text-align: left;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .preview-invoice th {
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .preview-invoice .total-preview {
+            text-align: right;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 2px solid #e2e8f0;
+        }
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+                margin: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>InvoiceFlow</h1>
+            <button id="dark-mode-toggle">🌙 Dark Mode</button>
+        </header>
+
+        <section class="form-section">
+            <h2>Create New Invoice</h2>
+            <div class="form-group">
+                <label for="company-name">Your Company Name</label>
+                <input type="text" id="company-name" placeholder="InvoiceFlow Inc.">
+            </div>
+            <div class="form-group">
+                <label for="client-name">Client Name</label>
+                <input type="text" id="client-name" placeholder="John Doe">
+            </div>
+            <div class="form-group">
+                <label for="invoice-date">Invoice Date</label>
+                <input type="date" id="invoice-date">
+            </div>
+            <div class="form-group">
+                <label for="invoice-number">Invoice Number</label>
+                <input type="text" id="invoice-number" placeholder="INV-001">
+            </div>
+            
+            <h3>Invoice Items</h3>
+            <table class="line-items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">Description</th>
+                        <th style="width: 15%;">Qty</th>
+                        <th style="width: 15%;">Rate</th>
+                        <th style="width: 15%;">Amount</th>
+                        <th style="width: 10%;"></th>
+                    </tr>
+                </thead>
+                <tbody id="items-container">
+                    </tbody>
+            </table>
+            <button id="add-line-item" type="button">+ Add Line Item</button>
+            <div class="total-amount">
+                Total: <span id="total-amount-display">$0.00</span>
+            </div>
+
+            <button id="download-pdf" style="margin-top: 2rem; width: 100%;">Download Invoice</button>
+        </section>
+
+        <section class="preview-section">
+            <h2>Live Preview</h2>
+            <div id="invoice-preview" class="preview-invoice">
+                </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+    <script>
+        // Set today's date on page load
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('invoice-date').value = today;
+
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const body = document.body;
+        darkModeToggle.addEventListener('click', () => {
+            body.dataset.theme = body.dataset.theme === 'dark' ? '' : 'dark';
+            darkModeToggle.textContent = body.dataset.theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+        });
+
+        let items = [
+            { description: '', quantity: 1, rate: 0 }
+        ];
+
+        const container = document.getElementById('items-container');
+        const preview = document.getElementById('invoice-preview');
+        const companyNameInput = document.getElementById('company-name');
+        const clientNameInput = document.getElementById('client-name');
+        const invoiceDateInput = document.getElementById('invoice-date');
+        const invoiceNumberInput = document.getElementById('invoice-number');
+        const totalAmountDisplay = document.getElementById('total-amount-display');
+
+        function renderItems() {
+            container.innerHTML = '';
+            items.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const amount = item.quantity * item.rate;
+                row.innerHTML = `
+                    <td><input type="text" placeholder="Description" value="${item.description}" data-idx="${index}" class="description-input"></td>
+                    <td><input type="number" min="1" value="${item.quantity}" data-idx="${index}" class="quantity-input"></td>
+                    <td><input type="number" min="0" step="0.01" value="${item.rate}" data-idx="${index}" class="rate-input"></td>
+                    <td>$${amount.toFixed(2)}</td>
+                    <td><button type="button" class="remove-item" data-idx="${index}">🗑️</button></td>
+                `;
+                container.appendChild(row);
+            });
+            updateTotal();
+            renderPreview();
+        }
+
+        function addItem() {
+            items.push({ description: '', quantity: 1, rate: 0 });
+            renderItems();
+        }
+
+        function removeItem(index) {
+            if (items.length > 1) {
+                items.splice(index, 1);
+                renderItems();
+            }
+        }
+
+        function updateTotal() {
+            const total = items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+            totalAmountDisplay.textContent = `$${total.toFixed(2)}`;
+        }
+
+        function renderPreview() {
+            const companyName = companyNameInput.value || 'Your Company';
+            const clientName = clientNameInput.value || 'Client Name';
+            const invoiceDate = invoiceDateInput.value || today;
+            const invoiceNumber = invoiceNumberInput.value || 'INV-001';
+
+            let previewHTML = `
+                <div class="preview-header">
+                    <div>
+                        <h3>${companyName}</h3>
+                        <p>Invoice for: ${clientName}</p>
+                    </div>
+                    <div>
+                        <p>Invoice #: <strong>${invoiceNumber}</strong></p>
+                        <p>Date: ${invoiceDate}</p>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            let total = 0;
+            items.forEach(item => {
+                const amount = item.quantity * item.rate;
+                previewHTML += `
+                    <tr>
+                        <td>${item.description}</td>
+                        <td>${item.quantity}</td>
+                        <td>$${item.rate.toFixed(2)}</td>
+                        <td>$${amount.toFixed(2)}</td>
+                    </tr>
+                `;
+                total += amount;
+            });
+            previewHTML += `
+                    </tbody>
+                </table>
+                <div class="total-preview">
+                    Total: $${total.toFixed(2)}
+                </div>
+            `;
+            preview.innerHTML = previewHTML;
+        }
+
+        // Event Listeners
+        document.getElementById('add-line-item').addEventListener('click', addItem);
+        container.addEventListener('input', (e) => {
+            const target = e.target;
+            const index = parseInt(target.dataset.idx);
+
+            if (target.classList.contains('description-input')) {
+                items[index].description = target.value;
+            } else if (target.classList.contains('quantity-input')) {
+                items[index].quantity = Math.max(1, parseFloat(target.value));
+            } else if (target.classList.contains('rate-input')) {
+                items[index].rate = Math.max(0, parseFloat(target.value));
+            }
+            renderItems();
+        });
+        container.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-item')) {
+                removeItem(parseInt(e.target.dataset.idx));
+            }
+        });
+        [companyNameInput, clientNameInput, invoiceDateInput, invoiceNumberInput].forEach(input => {
+            input.addEventListener('input', renderPreview);
+        });
+
+        // PDF Export function
+        document.getElementById('download-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                unit: 'pt',
+                format: 'letter'
+            });
+
+            // Using HTML to render a cleaner PDF
+            doc.html(document.getElementById('invoice-preview'), {
+                callback: (pdf) => {
+                    pdf.save('invoice.pdf');
+                },
+                x: 30,
+                y: 30
+            });
+        });
+
+        // Initial render
+        renderItems();
+    </script>
+</body>
+</html>
