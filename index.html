@@ -720,23 +720,36 @@
         });
         document.getElementById('save-invoice').addEventListener('click', saveInvoice);
 
+        // --- FIX: This event listener has been updated to prevent re-rendering the whole table,
+        // so you can type freely in the description box. ---
         container.addEventListener('input', (e) => {
             const target = e.target;
-            const index = parseInt(target.dataset.idx);
-
+            // Find the closest parent row to identify the correct line item
+            const row = target.closest('tr');
+            const index = Array.from(row.parentNode.children).indexOf(row);
+            
             if (target.classList.contains('description-input')) {
                 lineItems[index].description = target.value;
                 const savedItem = getSavedItem(target.value);
                 if (savedItem) {
                     lineItems[index].quantity = savedItem.quantity;
                     lineItems[index].rate = savedItem.rate;
+                    // Update the values in the DOM without a full re-render
+                    row.querySelector('.quantity-input').value = savedItem.quantity;
+                    row.querySelector('.rate-input').value = savedItem.rate;
                 }
             } else if (target.classList.contains('quantity-input')) {
                 lineItems[index].quantity = Math.max(1, parseFloat(target.value) || 0);
             } else if (target.classList.contains('rate-input')) {
                 lineItems[index].rate = Math.max(0, parseFloat(target.value) || 0);
             }
-            renderLineItems();
+
+            // Update the amount for the specific row
+            const amount = lineItems[index].quantity * lineItems[index].rate;
+            row.querySelector('.amount').textContent = `$${amount.toFixed(2)}`;
+
+            updateTotal();
+            renderPreview();
         });
 
         container.addEventListener('click', (e) => {
