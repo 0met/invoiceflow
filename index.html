@@ -15,6 +15,7 @@
             --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
             --border-color: #e2e8f0;
             --focus-color: #9f7aea;
+            --error-color: #ef4444;
         }
         [data-theme="dark"] {
             --bg-color: #1a202c;
@@ -23,6 +24,7 @@
             --card-shadow: 0 4px 12px rgba(0,0,0,0.3);
             --border-color: #4a5568;
             --focus-color: #667eea;
+            --error-color: #f87171;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -117,6 +119,9 @@
             color: var(--text-color);
             transition: border-color 0.2s;
         }
+        input.error {
+            border-color: var(--error-color);
+        }
         input:focus {
             outline: none;
             border-color: var(--focus-color);
@@ -176,11 +181,24 @@
         #add-line-item:hover {
             background: rgba(90, 103, 216, 0.1);
         }
+        .total-breakdown {
+            text-align: right;
+            margin-top: 2rem;
+            font-size: 1.1rem;
+        }
+        .total-breakdown div {
+            display: flex;
+            justify-content: flex-end;
+            gap: 2rem;
+        }
+        .total-breakdown div span:first-child {
+            font-weight: 500;
+        }
         .total-amount {
             font-size: 1.8rem;
             font-weight: 700;
             text-align: right;
-            margin-top: 2rem;
+            margin-top: 1rem;
             padding-top: 1rem;
             border-top: 2px solid var(--border-color);
         }
@@ -262,7 +280,7 @@
         .saved-data-list .delete-btn {
             background: none;
             border: none;
-            color: #ef4444;
+            color: var(--error-color);
             padding: 0;
             font-size: 1rem;
             cursor: pointer;
@@ -344,8 +362,7 @@
                     </tr>
                 </thead>
                 <tbody id="items-container">
-                    <!-- Invoice items will be dynamically added here -->
-                </tbody>
+                    </tbody>
             </table>
             <button id="add-line-item" type="button">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -357,14 +374,42 @@
                     Save Item
                 </button>
             </div>
+            
+            <div class="form-group" style="margin-top: 1.5rem;">
+                <label for="discount">Discount (%)</label>
+                <input type="number" id="discount" value="0" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="tax-rate">Tax Rate (%)</label>
+                <input type="number" id="tax-rate" value="0" min="0" step="0.01">
+            </div>
+
+            <div class="total-breakdown">
+                <div><span>Subtotal:</span> <span id="subtotal-display">$0.00</span></div>
+                <div><span>Discount:</span> <span id="discount-display">-$0.00</span></div>
+                <div><span>Tax:</span> <span id="tax-display">$0.00</span></div>
+            </div>
+            
             <div class="total-amount">
                 Total: <span id="total-amount-display">$0.00</span>
             </div>
-            <button id="download-pdf" style="margin-top: 2rem; width: 100%;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Download Invoice
-            </button>
 
+            <div class="button-group" style="margin-top: 2rem;">
+                <button id="save-invoice" class="transparent-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    Save Invoice
+                </button>
+                <button id="download-pdf">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Download Invoice
+                </button>
+            </div>
+
+            <div class="saved-data-section">
+                <h3>Manage Saved Invoices</h3>
+                <ul id="saved-invoices-list" class="saved-data-list"></ul>
+            </div>
+            
             <div class="saved-data-section">
                 <h3>Manage Saved Clients</h3>
                 <ul id="saved-clients-list" class="saved-data-list"></ul>
@@ -379,15 +424,14 @@
         <section class="preview-section">
             <h2>Live Preview</h2>
             <div id="invoice-preview" class="preview-invoice">
-                <!-- Live preview will be rendered here -->
-            </div>
+                </div>
         </section>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
-        // Set today's date on page load
+        // --- INITIAL SETUP ---
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('invoice-date').value = today;
 
@@ -398,10 +442,11 @@
             darkModeToggle.textContent = body.dataset.theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
         });
 
-        // Store all data in a single object
+        // --- GLOBAL STATE AND DOM ELEMENTS ---
         const invoiceData = {
             clients: [],
-            items: []
+            items: [],
+            invoices: [] // NEW: Array to store full saved invoices
         };
         let lineItems = [{ description: '', quantity: 1, rate: 0 }];
 
@@ -412,34 +457,36 @@
         const invoiceDateInput = document.getElementById('invoice-date');
         const invoiceNumberInput = document.getElementById('invoice-number');
         const totalAmountDisplay = document.getElementById('total-amount-display');
+        const subtotalDisplay = document.getElementById('subtotal-display');
+        const discountDisplay = document.getElementById('discount-display');
+        const taxDisplay = document.getElementById('tax-display');
         const clientsDatalist = document.getElementById('clients-list');
         const savedClientsList = document.getElementById('saved-clients-list');
         const savedItemsList = document.getElementById('saved-items-list');
+        const savedInvoicesList = document.getElementById('saved-invoices-list'); // NEW: Saved invoices list
+        const discountInput = document.getElementById('discount');
+        const taxRateInput = document.getElementById('tax-rate');
 
-        /**
-         * Loads data from localStorage into the invoiceData object.
-         */
+        // --- DATA MANAGEMENT FUNCTIONS ---
+
         function loadData() {
             const savedData = localStorage.getItem('invoiceFlowData');
             if (savedData) {
                 const parsedData = JSON.parse(savedData);
                 invoiceData.clients = parsedData.clients || [];
                 invoiceData.items = parsedData.items || [];
+                invoiceData.invoices = parsedData.invoices || []; // NEW
             }
         }
 
-        /**
-         * Saves the current invoiceData object to localStorage.
-         */
         function saveData() {
             localStorage.setItem('invoiceFlowData', JSON.stringify(invoiceData));
         }
-        
-        /**
-         * Renders the saved clients as options in the datalist and the management list.
-         */
+
+        // --- RENDERING FUNCTIONS ---
+
         function renderClientsList() {
-            clientsDatalist.innerHTML = invoiceData.clients.map(client => 
+            clientsDatalist.innerHTML = invoiceData.clients.map(client =>
                 `<option value="${client}"></option>`
             ).join('');
 
@@ -452,14 +499,11 @@
                 </li>
             `).join('');
         }
-        
-        /**
-         * Renders the saved items as options for the item datalists and the management list.
-         */
+
         function renderItemsList() {
             const itemDatalists = document.querySelectorAll('.items-list');
             itemDatalists.forEach(list => {
-                list.innerHTML = invoiceData.items.map(item => 
+                list.innerHTML = invoiceData.items.map(item =>
                     `<option value="${item.description}"></option>`
                 ).join('');
             });
@@ -473,10 +517,22 @@
                 </li>
             `).join('');
         }
+        
+        // NEW: Render a list of saved invoices
+        function renderInvoicesList() {
+            savedInvoicesList.innerHTML = invoiceData.invoices.map((invoice, index) => `
+                <li>
+                    <span>Invoice #${invoice.invoiceNumber} for ${invoice.client} (${invoice.date})</span>
+                    <div>
+                        <button class="transparent-btn load-invoice" data-idx="${index}">Load</button>
+                        <button class="delete-btn" data-idx="${index}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                    </div>
+                </li>
+            `).join('');
+        }
 
-        /**
-         * Renders the invoice line items table.
-         */
         function renderLineItems() {
             container.innerHTML = '';
             lineItems.forEach((item, index) => {
@@ -497,21 +553,14 @@
             });
             updateTotal();
             renderPreview();
-            renderItemsList(); // Ensure the datalists are populated
+            renderItemsList();
         }
 
-        /**
-         * Adds a new line item row to the invoice.
-         */
         function addItem() {
             lineItems.push({ description: '', quantity: 1, rate: 0 });
             renderLineItems();
         }
 
-        /**
-         * Removes a line item from the invoice.
-         * @param {number} index - The index of the item to remove.
-         */
         function removeItem(index) {
             if (lineItems.length > 1) {
                 lineItems.splice(index, 1);
@@ -519,22 +568,27 @@
             }
         }
 
-        /**
-         * Calculates and updates the total amount.
-         */
         function updateTotal() {
-            const total = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+            const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+            const discount = (subtotal * (parseFloat(discountInput.value) || 0)) / 100;
+            const tax = (subtotal - discount) * (parseFloat(taxRateInput.value) || 0) / 100;
+            const total = subtotal - discount + tax;
+
+            subtotalDisplay.textContent = `$${subtotal.toFixed(2)}`;
+            discountDisplay.textContent = `-$${discount.toFixed(2)}`;
+            taxDisplay.textContent = `$${tax.toFixed(2)}`;
             totalAmountDisplay.textContent = `$${total.toFixed(2)}`;
         }
 
-        /**
-         * Renders the live invoice preview.
-         */
         function renderPreview() {
             const companyName = companyNameInput.value || 'Your Company';
             const clientName = clientNameInput.value || 'Client Name';
             const invoiceDate = invoiceDateInput.value || today;
             const invoiceNumber = invoiceNumberInput.value || 'INV-001';
+            const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+            const discount = (subtotal * (parseFloat(discountInput.value) || 0)) / 100;
+            const tax = (subtotal - discount) * (parseFloat(taxRateInput.value) || 0) / 100;
+            const total = subtotal - discount + tax;
 
             let previewHTML = `
                 <div class="preview-header">
@@ -558,7 +612,6 @@
                     </thead>
                     <tbody>
             `;
-            let total = 0;
             lineItems.forEach(item => {
                 const amount = item.quantity * item.rate;
                 previewHTML += `
@@ -569,50 +622,89 @@
                         <td>$${amount.toFixed(2)}</td>
                     </tr>
                 `;
-                total += amount;
             });
             previewHTML += `
                     </tbody>
                 </table>
                 <div class="total-preview">
-                    Total: $${total.toFixed(2)}
+                    <p>Subtotal: $${subtotal.toFixed(2)}</p>
+                    <p>Discount: -$${discount.toFixed(2)}</p>
+                    <p>Tax: $${tax.toFixed(2)}</p>
+                    <p>Total: $${total.toFixed(2)}</p>
                 </div>
             `;
             preview.innerHTML = previewHTML;
         }
-        
-        /**
-         * Finds a saved item from the library by its description.
-         * @param {string} description - The description to search for.
-         * @returns {object|undefined} The saved item object or undefined.
-         */
+
         function getSavedItem(description) {
             return invoiceData.items.find(item => item.description === description);
         }
 
-        /**
-         * Deletes a client from the saved list.
-         * @param {string} clientName - The name of the client to delete.
-         */
         function deleteClient(clientName) {
             invoiceData.clients = invoiceData.clients.filter(c => c !== clientName);
             saveData();
             renderClientsList();
         }
 
-        /**
-         * Deletes an item from the saved list.
-         * @param {string} itemDescription - The description of the item to delete.
-         */
         function deleteItem(itemDescription) {
             invoiceData.items = invoiceData.items.filter(i => i.description !== itemDescription);
             saveData();
             renderItemsList();
         }
 
-        // --- Event Listeners ---
-        document.getElementById('add-line-item').addEventListener('click', addItem);
+        // NEW: Function to save the current invoice to the list
+        function saveInvoice() {
+            // Basic validation
+            if (!companyNameInput.value || !clientNameInput.value || !invoiceNumberInput.value) {
+                alert('Please fill out Your Company Name, Client Name, and Invoice Number.');
+                if (!companyNameInput.value) companyNameInput.classList.add('error');
+                if (!clientNameInput.value) clientNameInput.classList.add('error');
+                if (!invoiceNumberInput.value) invoiceNumberInput.classList.add('error');
+                return;
+            }
 
+            const newInvoice = {
+                id: Date.now(),
+                company: companyNameInput.value,
+                client: clientNameInput.value,
+                invoiceNumber: invoiceNumberInput.value,
+                date: invoiceDateInput.value,
+                items: lineItems,
+                discount: parseFloat(discountInput.value),
+                taxRate: parseFloat(taxRateInput.value)
+            };
+            invoiceData.invoices.push(newInvoice);
+            saveData();
+            renderInvoicesList();
+            alert('Invoice saved successfully!');
+        }
+        
+        // NEW: Function to load a saved invoice
+        function loadInvoice(index) {
+            const invoiceToLoad = invoiceData.invoices[index];
+            companyNameInput.value = invoiceToLoad.company;
+            clientNameInput.value = invoiceToLoad.client;
+            invoiceNumberInput.value = invoiceToLoad.invoiceNumber;
+            invoiceDateInput.value = invoiceToLoad.date;
+            discountInput.value = invoiceToLoad.discount;
+            taxRateInput.value = invoiceToLoad.taxRate;
+            
+            lineItems = [...invoiceToLoad.items];
+            renderLineItems();
+            renderPreview();
+        }
+
+        // NEW: Function to delete a saved invoice
+        function deleteInvoice(index) {
+            if (confirm('Are you sure you want to delete this invoice?')) {
+                invoiceData.invoices.splice(index, 1);
+                saveData();
+                renderInvoicesList();
+            }
+        }
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('add-line-item').addEventListener('click', addItem);
         document.getElementById('save-client-btn').addEventListener('click', () => {
             const clientName = clientNameInput.value.trim();
             if (clientName && !invoiceData.clients.includes(clientName)) {
@@ -621,7 +713,6 @@
                 renderClientsList();
             }
         });
-
         document.getElementById('save-item-btn').addEventListener('click', () => {
             const lastItem = lineItems[lineItems.length - 1];
             const description = lastItem.description.trim();
@@ -631,11 +722,12 @@
                 renderItemsList();
             }
         });
-        
+        document.getElementById('save-invoice').addEventListener('click', saveInvoice); // NEW
+
         container.addEventListener('input', (e) => {
             const target = e.target;
             const index = parseInt(target.dataset.idx);
-            
+
             if (target.classList.contains('description-input')) {
                 lineItems[index].description = target.value;
                 const savedItem = getSavedItem(target.value);
@@ -644,9 +736,9 @@
                     lineItems[index].rate = savedItem.rate;
                 }
             } else if (target.classList.contains('quantity-input')) {
-                lineItems[index].quantity = Math.max(1, parseFloat(target.value));
+                lineItems[index].quantity = Math.max(1, parseFloat(target.value) || 0);
             } else if (target.classList.contains('rate-input')) {
-                lineItems[index].rate = Math.max(0, parseFloat(target.value));
+                lineItems[index].rate = Math.max(0, parseFloat(target.value) || 0);
             }
             renderLineItems();
         });
@@ -670,9 +762,24 @@
                 deleteItem(itemDescription);
             }
         });
+        
+        // NEW: Event listener for saved invoices list
+        savedInvoicesList.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.classList.contains('load-invoice')) {
+                loadInvoice(parseInt(target.dataset.idx));
+            } else if (target.closest('.delete-btn')) {
+                deleteInvoice(parseInt(target.closest('.delete-btn').dataset.idx));
+            }
+        });
 
-        [companyNameInput, clientNameInput, invoiceDateInput, invoiceNumberInput].forEach(input => {
-            input.addEventListener('input', renderPreview);
+        // NEW: Listen for changes in company, client, invoice number, tax, and discount
+        [companyNameInput, clientNameInput, invoiceDateInput, invoiceNumberInput, discountInput, taxRateInput].forEach(input => {
+            input.addEventListener('input', () => {
+                input.classList.remove('error');
+                renderPreview();
+                updateTotal();
+            });
         });
 
         // PDF Export function using html2canvas and jsPDF
@@ -680,27 +787,27 @@
             const { jsPDF } = window.jspdf;
             const previewElement = document.getElementById('invoice-preview');
 
-            html2canvas(previewElement, { 
+            html2canvas(previewElement, {
                 scale: 2
             }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgWidth = 210; 
+                const imgWidth = 210;
                 const pageHeight = 295;
                 const imgHeight = canvas.height * imgWidth / canvas.width;
                 let heightLeft = imgHeight;
                 let position = 0;
-                
+
                 pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
                 heightLeft -= pageHeight;
-                
+
                 while (heightLeft >= 0) {
                     position = heightLeft - imgHeight;
                     pdf.addPage();
                     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
                     heightLeft -= pageHeight;
                 }
-                
+
                 pdf.save('invoice.pdf');
             });
         });
@@ -708,8 +815,9 @@
         // Initial load and render
         loadData();
         renderClientsList();
+        renderItemsList();
+        renderInvoicesList(); // NEW
         renderLineItems();
     </script>
 </body>
 </html>
-
